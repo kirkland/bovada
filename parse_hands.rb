@@ -4,11 +4,26 @@ require 'ostruct'
 
 def parse_hand(hand_data)
   hand = OpenStruct.new
+  hand.players = []
 
   hand_data.each do |line|
-    if line =~ /\ABovada Hand #/
+    case line
+    when /\ABovada Hand #/
       hand.id, hand.table_id, hand.time =
         line.match(/#(\d+) TBL#(\d+).*(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/).captures
+    when /\ASeat (\d+)/
+      hand.players << OpenStruct.new.tap do |player|
+        player.name = "Seat #{$1}"
+        player.position = line.match(/: ([A-z ]+)/).captures.first.strip
+
+        if player.position =~ /\[ME\]/
+          player.position.gsub!(/\[ME\]/, '')
+          player.me = true
+        end
+
+        raw_stack = line.match(/\(\$([0-9\.]+) in chips\)/).captures.first
+        player.stack = (raw_stack.to_f * 100).to_i
+      end
     end
   end
 
