@@ -18,7 +18,8 @@ class StateMachine
   end
 
   def event(line)
-    if line =~ /\ABovada Hand #/
+    case line
+    when /\ABovada Hand #/
       transition_to(:create_hand, line)
     end
   end
