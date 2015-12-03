@@ -5,7 +5,7 @@ require 'ostruct'
 def parse_hand(hand_data)
   hand = OpenStruct.new
   hand.players = []
-  hand.actions = []
+  hand.betting_rounds = [OpenStruct.new(name: 'preflop')]
 
   hand_data.each do |line|
     case line
@@ -32,6 +32,10 @@ def parse_hand(hand_data)
       if player
         if line =~ /Card dealt to a spot \[(.*)\]/
           player.hole_cards = $1
+        elsif line =~ /Ante\/Small Blind/
+          player.small_blind = true
+        elsif line =~ /Big blind\/Bring in/
+          player.big_blind = true
         end
       end
     end
