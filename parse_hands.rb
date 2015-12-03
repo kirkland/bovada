@@ -5,6 +5,7 @@ require 'ostruct'
 def parse_hand(hand_data)
   hand = OpenStruct.new
   hand.players = []
+  hand.actions = []
 
   hand_data.each do |line|
     case line
@@ -24,6 +25,14 @@ def parse_hand(hand_data)
 
         raw_stack = line.match(/\(\$([0-9\.]+) in chips\)/).captures.first
         player.stack = (raw_stack.to_f * 100).to_i
+      end
+    else
+      player = hand.players.detect { |x| line =~ /\A#{x.position}/ }
+
+      if player
+        if line =~ /Card dealt to a spot \[(.*)\]/
+          player.hole_cards = $1
+        end
       end
     end
   end
