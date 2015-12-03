@@ -18,6 +18,7 @@ def parse_hand(hand_data)
 
         if player.position =~ /\[ME\]/
           player.position.gsub!(/\[ME\]/, '')
+          player.position.strip!
           player.me = true
         end
 
