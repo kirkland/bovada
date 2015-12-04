@@ -82,30 +82,20 @@ class StateMachine
     @current_betting_round << OpenStruct.new.tap do |action|
       action.type = :blind
       action.bet_amount = extract_amount
-
-      if @current_line =~ /\ASmall Blind.*\$([\d\.]+)/
-        action.player = player_in_position('Small Blind')
-      else
-        action.player = player_in_position('Big Blind')
-      end
+      action.player = current_player
     end
   end
 
   def changed_to_deal_hand
-    player_position, hole_cards = @current_line.
-      match(/\A([A-Za-z \+\d\[\]]+) : Card dealt to a spot \[(.*)\]/).captures
-
-    player = player_in_position(player_position)
-    player.hole_cards = hole_cards
+    hole_cards = @current_line.match(/.*: Card dealt to a spot \[(.*)\]/).captures.first
+    current_player.hole_cards = hole_cards
   end
 
   def changed_to_action
     if @current_line =~ /Folds/
       @current_betting_round << OpenStruct.new.tap do |action|
-        player_position = @current_line.match(/\A(.*) :/).captures.first
-
         action.type = :fold
-        action.player = player_in_position(player_position)
+        action.player = current_player
       end
     end
   end
@@ -134,6 +124,11 @@ class StateMachine
 
   def player_in_position(position)
     @current_hand.players.detect { |x| x.position == cleanup_player_position(position) }
+  end
+
+  def current_player
+    player_position = @current_line.match(/\A(.*) :/).captures.first
+    player_in_position(player_position)
   end
 end
 
