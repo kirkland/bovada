@@ -72,8 +72,7 @@ class StateMachine
         player.me = true
       end
 
-      raw_stack = @current_line.match(/\(\$([0-9\.]+) in chips\)/).captures.first
-      player.stack = (raw_stack.to_f * 100).to_i
+      player.stack = extract_amount
     end
   end
 
@@ -82,9 +81,7 @@ class StateMachine
 
     @current_betting_round << OpenStruct.new.tap do |action|
       action.type = :blind
-
-      raw_stack = @current_line.match(/\$([\d\.]+)/).captures.first
-      action.bet_amount = (raw_stack.to_f * 100).to_i
+      action.bet_amount = extract_amount
 
       if @current_line =~ /\ASmall Blind.*\$([\d\.]+)/
         action.player = @current_hand.players.detect { |x| x.position == 'Small Blind' }
@@ -123,6 +120,15 @@ class StateMachine
       send("changed_to_#{@state}")
     else
       raise InvalidTransition, "Invalid transition from #{@state} to #{new_state}"
+    end
+  end
+
+  def extract_amount
+    if @current_line.count('$') > 1
+      raise "Uh oh, I don't know which amount to extract from #{@current_line}"
+    else
+      raw_stack = @current_line.match(/\$([0-9\.]+)/).captures.first
+      (raw_stack.to_f * 100).to_i
     end
   end
 end
