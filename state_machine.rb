@@ -10,8 +10,8 @@ class StateMachine
     create_hand: [:create_player],
     create_player: [:create_player, :post_blind],
     post_blind: [:post_blind, :deal_hand],
-    deal_hand: [:deal_hand, :action, :showdown],
-    action: [:action]
+    deal_hand: [:deal_hand, :action],
+    action: [:action, :showdown]
   }
 
   STATES = TRANSITIONS.keys
@@ -48,7 +48,14 @@ class StateMachine
   private
 
   def changed_to_create_hand
-    @current_hand = create_hand
+    @current_hand = OpenStruct.new.tap do |hand|
+      hand.id, hand.table_id, hand.time =
+        @current_line.match(/#(\d+) TBL#(\d+).*(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/).captures
+
+      hand.preflop_actions = []
+      @current_betting_round = hand.preflop_actions
+    end
+
     @hands << @current_hand
   end
 
@@ -108,16 +115,6 @@ class StateMachine
 
   def cleanup_player_position(name)
     name.gsub(/\[ME\]/, '').strip
-  end
-
-  def create_hand
-    OpenStruct.new.tap do |hand|
-      hand.id, hand.table_id, hand.time =
-        @current_line.match(/#(\d+) TBL#(\d+).*(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/).captures
-
-      hand.preflop_actions = []
-      @current_betting_round = hand.preflop_actions
-    end
   end
 
   def transition_to(new_state)
