@@ -9,7 +9,8 @@ class StateMachine
     start: [:create_hand],
     create_hand: [:create_player],
     create_player: [:create_player, :post_blind],
-    post_blind: [:post_blind, :deal_hand]
+    post_blind: [:post_blind, :deal_hand],
+    deal_hand: [:deal_hand, :preflop_action, :showdown]
   }
 
   STATES = TRANSITIONS.keys
@@ -32,6 +33,10 @@ class StateMachine
       # no-op
     when /Ante\/Small Blind/, /Big blind\/Bring in/
       transition_to(:post_blind)
+    when /Card dealt to a spot/
+      transition_to(:deal_hand)
+    when /\*\*\* HOLE CARDS/
+      # no-op
     else
       raise InvalidTransitionException, 'Line did not match a pattern'
     end
@@ -78,6 +83,18 @@ class StateMachine
         action.player = @current_hand.players.detect { |x| x.position == 'Big Blind' }
       end
     end
+  end
+
+  def changed_to_deal_hand
+    player_name, hole_cards = @current_line.
+      match(/\A([A-Za-z \+\d\[\]]+) : Card dealt to a spot \[(.*)\]/).captures
+
+    player = @current_hand.players.detect { |x| x.position == cleanup_player_name(player_name) }
+    player.hole_cards = hole_cards
+  end
+
+  def cleanup_player_name(name)
+    name.gsub(/\[ME\]/, '').strip
   end
 
   def create_hand
