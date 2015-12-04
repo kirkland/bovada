@@ -95,7 +95,7 @@ class StateMachine
     raw_player_position, hole_cards = @current_line.
       match(/\A([A-Za-z \+\d\[\]]+) : Card dealt to a spot \[(.*)\]/).captures
 
-    player = player_in_position(cleanup_player_position(raw_player_position))
+    player = player_in_position(raw_player_position)
     player.hole_cards = hole_cards
   end
 
@@ -133,7 +133,7 @@ class StateMachine
   end
 
   def player_in_position(position)
-    @current_hand.players.detect { |x| x.position == position }
+    @current_hand.players.detect { |x| x.position == cleanup_player_position(position) }
   end
 end
 
