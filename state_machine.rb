@@ -1,6 +1,8 @@
 require 'ostruct'
 
 class StateMachine
+  class InvalidTransitionException < StandardError; end
+
   attr_reader :hands
 
   TRANSITIONS = {
@@ -18,17 +20,40 @@ class StateMachine
   end
 
   def event(line)
+    @current_line = line
+
     case line
     when /\ABovada Hand #/
-      transition_to(:create_hand, line)
+      transition_to(:create_hand)
+    when /\ASeat (\d+)/
+      transition_to(:create_player)
     end
   end
 
   private
 
-  def changed_to_create_hand(line)
-    @current_hand = create_hand(line)
+  def changed_to_create_hand
+    @current_hand = create_hand(@current_line)
     @hands << @current_hand
+  end
+
+  def changed_to_create_player
+    @current_hand.players ||= []
+
+    @current_hand.players << OpenStruct.new.tap do |player|
+      @current_line.match(/\ASeat (\d+)/)
+      player.name = "Seat #{$1}"
+      player.position = @current_line.match(/: ([A-z ]+)/).captures.first.strip
+
+      if player.position =~ /\[ME\]/
+        player.position.gsub!(/\[ME\]/, '')
+        player.position.strip!
+        player.me = true
+      end
+
+      raw_stack = @current_line.match(/\(\$([0-9\.]+) in chips\)/).captures.first
+      player.stack = (raw_stack.to_f * 100).to_i
+    end
   end
 
   def create_hand(line)
@@ -38,12 +63,12 @@ class StateMachine
     end
   end
 
-  def transition_to(new_state, line)
+  def transition_to(new_state)
     if TRANSITIONS[@state].include?(new_state)
       @state = new_state
-      send("changed_to_#{@state}", line)
+      send("changed_to_#{@state}")
     else
-      raise "Invalid transition from #{@state} to #{new_state}"
+      raise InvalidTransitionException, "Invalid transition from #{@state} to #{new_state}"
     end
   end
 end
@@ -61,7 +86,11 @@ end
 sm = StateMachine.new
 
 each_line do |line|
-  sm.event(line)
+  begin
+    sm.event(line)
+  rescue StateMachine::InvalidTransitionException
+    break
+  end
 end
 
 require 'pry'; binding.pry
