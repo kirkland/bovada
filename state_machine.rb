@@ -8,7 +8,8 @@ class StateMachine
   TRANSITIONS = {
     start: [:create_hand],
     create_hand: [:create_player],
-    create_player: [:create_player, :post_blind]
+    create_player: [:create_player, :post_blind],
+    post_blind: [:post_blind, :deal_hand]
   }
 
   STATES = TRANSITIONS.keys
@@ -22,11 +23,15 @@ class StateMachine
   def event(line)
     @current_line = line
 
-    case line
+    case @current_line
     when /\ABovada Hand #/
       transition_to(:create_hand)
     when /\ASeat (\d+)/
       transition_to(:create_player)
+    when /\ADealer : Set dealer\/Bring in spot/
+      # no-op
+    when /Ante\/Small Blind/, /Big blind\/Bring in/
+      transition_to(:post_blind)
     else
       raise InvalidTransitionException, 'Line did not match a pattern'
     end
@@ -35,7 +40,7 @@ class StateMachine
   private
 
   def changed_to_create_hand
-    @current_hand = create_hand(@current_line)
+    @current_hand = create_hand
     @hands << @current_hand
   end
 
@@ -58,10 +63,27 @@ class StateMachine
     end
   end
 
-  def create_hand(line)
+  def changed_to_post_blind
+    @current_hand.preflop_actions ||= []
+
+    @current_hand.preflop_actions << OpenStruct.new.tap do |action|
+      action.type = :blind
+
+      raw_stack = @current_line.match(/\$([\d\.]+)/).captures.first
+      action.bet_amount = (raw_stack.to_f * 100).to_i
+
+      if @current_line =~ /\ASmall Blind.*\$([\d\.]+)/
+        action.player = @current_hand.players.detect { |x| x.position == 'Small Blind' }
+      else
+        action.player = @current_hand.players.detect { |x| x.position == 'Big Blind' }
+      end
+    end
+  end
+
+  def create_hand
     OpenStruct.new.tap do |hand|
       hand.id, hand.table_id, hand.time =
-        line.match(/#(\d+) TBL#(\d+).*(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/).captures
+        @current_line.match(/#(\d+) TBL#(\d+).*(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/).captures
     end
   end
 
