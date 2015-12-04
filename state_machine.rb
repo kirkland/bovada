@@ -1,7 +1,7 @@
 require 'ostruct'
 
 class StateMachine
-  class InvalidTransitionException < StandardError; end
+  class InvalidTransition < StandardError; end
 
   attr_reader :hands
 
@@ -41,7 +41,7 @@ class StateMachine
     when / : Folds/
       transition_to(:action)
     else
-      raise InvalidTransitionException, 'Line did not match a pattern'
+      raise InvalidTransition, 'Line did not match a pattern'
     end
   end
 
@@ -125,7 +125,7 @@ class StateMachine
       @state = new_state
       send("changed_to_#{@state}")
     else
-      raise InvalidTransitionException, "Invalid transition from #{@state} to #{new_state}"
+      raise InvalidTransition, "Invalid transition from #{@state} to #{new_state}"
     end
   end
 end
@@ -145,7 +145,7 @@ sm = StateMachine.new
 each_line do |line, filename, line_number|
   begin
     sm.event(line)
-  rescue StateMachine::InvalidTransitionException => e
+  rescue StateMachine::InvalidTransition => e
     puts "Stopping on invalid transition in file: #{filename}, line #{line_number}, error: #{e.message}"
     puts "Content: #{line}"
     break
