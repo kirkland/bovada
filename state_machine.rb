@@ -92,10 +92,10 @@ class StateMachine
   end
 
   def changed_to_deal_hand
-    raw_player_position, hole_cards = @current_line.
+    player_position, hole_cards = @current_line.
       match(/\A([A-Za-z \+\d\[\]]+) : Card dealt to a spot \[(.*)\]/).captures
 
-    player = player_in_position(raw_player_position)
+    player = player_in_position(player_position)
     player.hole_cards = hole_cards
   end
 
