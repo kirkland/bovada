@@ -55,11 +55,10 @@ class StateMachine
     @current_hand.players << OpenStruct.new.tap do |player|
       @current_line.match(/\ASeat (\d+)/)
       player.name = "Seat #{$1}"
-      player.position = @current_line.match(/: ([A-z ]+)/).captures.first.strip
+      raw_player_position = @current_line.match(/: ([A-z ]+)/).captures.first
+      player.position = cleanup_player_position(raw_player_position)
 
-      if player.position =~ /\[ME\]/
-        player.position.gsub!(/\[ME\]/, '')
-        player.position.strip!
+      if raw_player_position =~ /\[ME\]/
         player.me = true
       end
 
@@ -86,14 +85,14 @@ class StateMachine
   end
 
   def changed_to_deal_hand
-    player_name, hole_cards = @current_line.
+    player_position, hole_cards = @current_line.
       match(/\A([A-Za-z \+\d\[\]]+) : Card dealt to a spot \[(.*)\]/).captures
 
-    player = @current_hand.players.detect { |x| x.position == cleanup_player_name(player_name) }
+    player = @current_hand.players.detect { |x| x.position == cleanup_player_position(player_position) }
     player.hole_cards = hole_cards
   end
 
-  def cleanup_player_name(name)
+  def cleanup_player_position(name)
     name.gsub(/\[ME\]/, '').strip
   end
 
