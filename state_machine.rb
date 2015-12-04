@@ -10,7 +10,8 @@ class StateMachine
     create_hand: [:create_player],
     create_player: [:create_player, :post_blind],
     post_blind: [:post_blind, :deal_hand],
-    deal_hand: [:deal_hand, :preflop_action, :showdown]
+    deal_hand: [:deal_hand, :action, :showdown],
+    action: [:action]
   }
 
   STATES = TRANSITIONS.keys
@@ -37,6 +38,8 @@ class StateMachine
       transition_to(:deal_hand)
     when /\*\*\* HOLE CARDS/
       # no-op
+    when / : Folds/
+      transition_to(:action)
     else
       raise InvalidTransitionException, 'Line did not match a pattern'
     end
@@ -68,9 +71,9 @@ class StateMachine
   end
 
   def changed_to_post_blind
-    @current_hand.preflop_actions ||= []
+    @current_betting_round ||= []
 
-    @current_hand.preflop_actions << OpenStruct.new.tap do |action|
+    @current_betting_round << OpenStruct.new.tap do |action|
       action.type = :blind
 
       raw_stack = @current_line.match(/\$([\d\.]+)/).captures.first
@@ -92,6 +95,17 @@ class StateMachine
     player.hole_cards = hole_cards
   end
 
+  def changed_to_action
+    if @current_line =~ /Folds/
+      @current_betting_round << OpenStruct.new.tap do |action|
+        player_position = @current_line.match(/\A(.*) :/).captures.first
+
+        action.type = :fold
+        action.player = @current_hand.players.detect { |x| x.position == player_position }
+      end
+    end
+  end
+
   def cleanup_player_position(name)
     name.gsub(/\[ME\]/, '').strip
   end
@@ -100,6 +114,9 @@ class StateMachine
     OpenStruct.new.tap do |hand|
       hand.id, hand.table_id, hand.time =
         @current_line.match(/#(\d+) TBL#(\d+).*(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/).captures
+
+      hand.preflop_actions = []
+      @current_betting_round = hand.preflop_actions
     end
   end
 
