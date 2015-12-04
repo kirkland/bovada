@@ -84,18 +84,18 @@ class StateMachine
       action.bet_amount = extract_amount
 
       if @current_line =~ /\ASmall Blind.*\$([\d\.]+)/
-        action.player = @current_hand.players.detect { |x| x.position == 'Small Blind' }
+        action.player = player_in_position('Small Blind')
       else
-        action.player = @current_hand.players.detect { |x| x.position == 'Big Blind' }
+        action.player = player_in_position('Big Blind')
       end
     end
   end
 
   def changed_to_deal_hand
-    player_position, hole_cards = @current_line.
+    raw_player_position, hole_cards = @current_line.
       match(/\A([A-Za-z \+\d\[\]]+) : Card dealt to a spot \[(.*)\]/).captures
 
-    player = @current_hand.players.detect { |x| x.position == cleanup_player_position(player_position) }
+    player = player_in_position(cleanup_player_position(raw_player_position))
     player.hole_cards = hole_cards
   end
 
@@ -105,7 +105,7 @@ class StateMachine
         player_position = @current_line.match(/\A(.*) :/).captures.first
 
         action.type = :fold
-        action.player = @current_hand.players.detect { |x| x.position == player_position }
+        action.player = player_in_position(player_position)
       end
     end
   end
@@ -130,6 +130,10 @@ class StateMachine
       raw_stack = @current_line.match(/\$([0-9\.]+)/).captures.first
       (raw_stack.to_f * 100).to_i
     end
+  end
+
+  def player_in_position(position)
+    @current_hand.players.detect { |x| x.position == position }
   end
 end
 
