@@ -27,6 +27,8 @@ class StateMachine
       transition_to(:create_hand)
     when /\ASeat (\d+)/
       transition_to(:create_player)
+    else
+      raise InvalidTransitionException, 'Line did not match a pattern'
     end
   end
 
@@ -88,8 +90,8 @@ sm = StateMachine.new
 each_line do |line, filename, line_number|
   begin
     sm.event(line)
-  rescue StateMachine::InvalidTransitionException
-    puts "Stopping on invalid transition in file: #{filename}, line #{line_number}"
+  rescue StateMachine::InvalidTransitionException => e
+    puts "Stopping on invalid transition in file: #{filename}, line #{line_number}, error: #{e.message}"
     puts "Content: #{line}"
     break
   end
