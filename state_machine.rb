@@ -75,20 +75,22 @@ end
 
 def each_line
   Dir.glob('data/*').each do |filename|
-    File.read(filename).split("\r\n").each do |line|
+    File.read(filename).split("\r\n").each_with_index do |line, line_number|
       # Remove UTF-16 byte order mark
       line.sub!(/\ufeff/, '')
-      yield line
+      yield line, filename, line_number
     end
   end
 end
 
 sm = StateMachine.new
 
-each_line do |line|
+each_line do |line, filename, line_number|
   begin
     sm.event(line)
   rescue StateMachine::InvalidTransitionException
+    puts "Stopping on invalid transition in file: #{filename}, line #{line_number}"
+    puts "Content: #{line}"
     break
   end
 end
