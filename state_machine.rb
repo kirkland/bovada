@@ -47,6 +47,17 @@ class StateMachine
 
   private
 
+  # Transition functions
+
+  def transition_to(new_state)
+    if TRANSITIONS[@state].include?(new_state)
+      @state = new_state
+      send("changed_to_#{@state}")
+    else
+      raise InvalidTransition, "Invalid transition from #{@state} to #{new_state}"
+    end
+  end
+
   def changed_to_create_hand
     @current_hand = OpenStruct.new.tap do |hand|
       hand.id, hand.table_id, hand.time =
@@ -100,18 +111,13 @@ class StateMachine
     end
   end
 
+  # Utility Methods
+
   def cleanup_player_position(name)
     name.gsub(/\[ME\]/, '').strip
   end
 
-  def transition_to(new_state)
-    if TRANSITIONS[@state].include?(new_state)
-      @state = new_state
-      send("changed_to_#{@state}")
-    else
-      raise InvalidTransition, "Invalid transition from #{@state} to #{new_state}"
-    end
-  end
+  # Extraction Methods
 
   def extract_amount
     if @current_line.count('$') > 1
@@ -122,13 +128,9 @@ class StateMachine
     end
   end
 
-  def player_in_position(position)
-    @current_hand.players.detect { |x| x.position == cleanup_player_position(position) }
-  end
-
   def current_player
-    player_position = @current_line.match(/\A(.*) :/).captures.first
-    player_in_position(player_position)
+    position = @current_line.match(/\A(.*) :/).captures.first
+    @current_hand.players.detect { |x| x.position == cleanup_player_position(position) }
   end
 end
 
