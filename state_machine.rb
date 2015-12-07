@@ -12,9 +12,9 @@ class StateMachine
     post_blind: [:post_blind, :deal_hand],
     deal_hand: [:deal_hand, :action],
     action: [:action, :showdown, :deal_flop, :deal_turn, :deal_river],
-    deal_flop: [:action],
-    deal_turn: [:action],
-    deal_river: [:action],
+    deal_flop: [:action, :deal_turn, :deal_river],
+    deal_turn: [:action, :deal_river],
+    deal_river: [:action, :showdown],
     showdown: [:showdown, :create_hand]
   }
 
@@ -30,19 +30,19 @@ class StateMachine
     @current_line = line
 
     case @current_line
-    when /\ABovada Hand #/
+    when /\ABovada Hand #/, /\ASeat\+Bovada Hand/
       transition_to(:create_hand)
     when /\ASeat (\d+)/
       transition_to(:create_player)
     when / : Set dealer\/Bring in spot/
       # no-op
-    when /Ante\/Small Blind/, /Big blind\/Bring in/
+    when /Ante\/Small Blind/, /Big blind\/Bring in/, /Posts chip/
       transition_to(:post_blind)
     when /Card dealt to a spot/
       transition_to(:deal_hand)
     when /\A\*\*\* HOLE CARDS/
       # no-op
-    when / : Folds/, / : Calls/, / : Checks/, / : Bets/, / : Raises/
+    when / : Folds/, / : Calls/, / : Checks/, / : Bets/, / : Raises/, /: All-in/
       transition_to(:action)
     when /\A\*\*\* FLOP/
       transition_to(:deal_flop)
@@ -54,7 +54,8 @@ class StateMachine
       transition_to(:showdown)
     when /Table enter user/, /Seat sit down/
       # no-op
-    when /\A\*\*\* SUMMARY/, /\ASeat\+\d/, /Board/, /Total Pot/, /\A\z/, /Table deposit/, /Seat stand/, /Table leave user/
+    when /\A\*\*\* SUMMARY/, /\ASeat\+\d/, /Board/, /Total Pot/, /\A\z/, /Table deposit/,
+         /Seat stand/, /Table leave user/, /Seat sit out/, /Seat re-join/
       # no-op
     else
       raise InvalidTransition, 'Line did not match a pattern'
@@ -122,16 +123,22 @@ class StateMachine
     @current_betting_round << OpenStruct.new.tap do |action|
       action.player = current_player
 
-      if @current_line =~ /Folds/
+      action.type = case @current_line
+      when /Folds/
         action.type = :fold
-      elsif @current_line =~ /Calls/
+      when /Calls/
         action.type = :call
-      elsif @current_line =~ /Bets/
+      when /Bets/
         action.type = :bet
-      elsif @current_line =~ /Checks/
+      when /Checks/
         action.type = :check
-      elsif @current_line =~ /Raises/
+      when /Raises/
         action.type = :raise
+      when /All-in\(raise\)/
+        action.type = :raise
+      when /All-in/
+        # NOTE: This could also be a call
+        action.type = :bet
       end
     end
   end
