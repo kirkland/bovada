@@ -110,7 +110,7 @@ class StateMachine
 
     @current_betting_round << OpenStruct.new.tap do |action|
       action.type = :blind
-      action.bet_amount = extract_amount
+      action.amount = extract_amount
       action.player = current_player
     end
   end
@@ -126,20 +126,25 @@ class StateMachine
 
       action.type = case @current_line
       when /Folds/
-        action.type = :fold
+        :fold
       when /Calls/
-        action.type = :call
+        action.amount = extract_amount
+        :call
       when /Bets/
-        action.type = :bet
+        action.amount = extract_amount
+        :bet
       when /Checks/
-        action.type = :check
+        :check
       when /Raises/
-        action.type = :raise
+        action.amount = extract_amount
+        :raise
       when /All-in\(raise\)/
-        action.type = :raise
+        action.amount = extract_amount
+        :raise
       when /All-in/
         # NOTE: This could also be a call
-        action.type = :bet
+        action.amount = extract_amount
+        :bet
       end
     end
   end
@@ -175,11 +180,16 @@ class StateMachine
 
   def extract_amount
     if @current_line.count('$') > 1
-      raise "Uh oh, I don't know which amount to extract from #{@current_line}"
+      if @current_line.match(/\$[0-9\.]+ to \$([0-9\.])+/)
+        raw_amount = $1
+      else
+        raise "Uh oh, I don't know which amount to extract from #{@current_line}"
+      end
     else
       raw_amount = @current_line.match(/\$([0-9\.]+)/).captures.first
-      (raw_amount.to_f * 100).to_i
     end
+
+    (raw_amount.to_f * 100).to_i
   end
 
   def current_player
