@@ -36,7 +36,7 @@ class StateMachine
       transition_to(:post_blind)
     when /Card dealt to a spot/
       transition_to(:deal_hand)
-    when /\*\*\* HOLE CARDS/
+    when /\A\*\*\* HOLE CARDS/
       # no-op
     when / : Folds/
       transition_to(:action)
@@ -123,8 +123,8 @@ class StateMachine
     if @current_line.count('$') > 1
       raise "Uh oh, I don't know which amount to extract from #{@current_line}"
     else
-      raw_stack = @current_line.match(/\$([0-9\.]+)/).captures.first
-      (raw_stack.to_f * 100).to_i
+      raw_amount = @current_line.match(/\$([0-9\.]+)/).captures.first
+      (raw_amount.to_f * 100).to_i
     end
   end
 
