@@ -152,16 +152,22 @@ class StateMachine
   def changed_to_deal_flop
     cards = @current_line.match(/\[([A-Za-z\d]{2}) ([A-Za-z\d]{2}) ([A-Za-z\d]{2})\]/).captures
     @current_hand.board = cards
+    @current_hand.flop_actions = []
+    @current_betting_round = @current_hand.flop_actions
   end
 
   def changed_to_deal_turn
     card = @current_line.match(/\[([A-Za-z\d]{2})\]/).captures.first
     @current_hand.board << card
+    @current_hand.turn_actions = []
+    @current_betting_round = @current_hand.turn_actions
   end
 
   def changed_to_deal_river
     card = @current_line.match(/\[([A-Za-z\d]{2})\]/).captures.first
     @current_hand.board << card
+    @current_hand.river_actions = []
+    @current_betting_round = @current_hand.river_actions
   end
 
   def changed_to_showdown
