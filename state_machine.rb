@@ -11,7 +11,10 @@ class StateMachine
     create_player: [:create_player, :post_blind],
     post_blind: [:post_blind, :deal_hand],
     deal_hand: [:deal_hand, :action],
-    action: [:action, :showdown],
+    action: [:action, :showdown, :deal_flop, :deal_turn, :deal_river],
+    deal_flop: [:action],
+    deal_turn: [:action],
+    deal_river: [:action],
     showdown: [:showdown, :create_hand]
   }
 
@@ -39,13 +42,19 @@ class StateMachine
       transition_to(:deal_hand)
     when /\A\*\*\* HOLE CARDS/
       # no-op
-    when / : Folds/
+    when / : Folds/, / : Calls/, / : Checks/, / : Bets/, / : Raises/
       transition_to(:action)
-    when /Does not show/, /Hand result/
+    when /\A\*\*\* FLOP/
+      transition_to(:deal_flop)
+    when /\A\*\*\* TURN/
+      transition_to(:deal_turn)
+    when /\A\*\*\* RIVER/
+      transition_to(:deal_river)
+    when /Does not show/, /Hand result/, /Return uncalled portion/, /Showdown/, /Mucks/
       transition_to(:showdown)
     when /Table enter user/, /Seat sit down/
       # no-op
-    when /\A\*\*\* SUMMARY/, /\ASeat\+\d/, /Board/, /Total Pot/, /\A\z/
+    when /\A\*\*\* SUMMARY/, /\ASeat\+\d/, /Board/, /Total Pot/, /\A\z/, /Table deposit/, /Seat stand/, /Table leave user/
       # no-op
     else
       raise InvalidTransition, 'Line did not match a pattern'
@@ -110,12 +119,36 @@ class StateMachine
   end
 
   def changed_to_action
-    if @current_line =~ /Folds/
-      @current_betting_round << OpenStruct.new.tap do |action|
+    @current_betting_round << OpenStruct.new.tap do |action|
+      action.player = current_player
+
+      if @current_line =~ /Folds/
         action.type = :fold
-        action.player = current_player
+      elsif @current_line =~ /Calls/
+        action.type = :call
+      elsif @current_line =~ /Bets/
+        action.type = :bet
+      elsif @current_line =~ /Checks/
+        action.type = :check
+      elsif @current_line =~ /Raises/
+        action.type = :raise
       end
     end
+  end
+
+  def changed_to_deal_flop
+    cards = @current_line.match(/\[([A-Za-z\d]{2}) ([A-Za-z\d]{2}) ([A-Za-z\d]{2})\]/).captures
+    @current_hand.board = cards
+  end
+
+  def changed_to_deal_turn
+    card = @current_line.match(/\[([A-Za-z\d]{2})\]/).captures.first
+    @current_hand.board << card
+  end
+
+  def changed_to_deal_river
+    card = @current_line.match(/\[([A-Za-z\d]{2})\]/).captures.first
+    @current_hand.board << card
   end
 
   def changed_to_showdown
