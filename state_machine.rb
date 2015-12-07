@@ -134,6 +134,7 @@ class StateMachine
   end
 end
 
+
 def each_line
   Dir.glob('data/*').each do |filename|
     File.read(filename).split("\r\n").each_with_index do |line, line_number|
