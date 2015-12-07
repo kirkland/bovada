@@ -11,7 +11,8 @@ class StateMachine
     create_player: [:create_player, :post_blind],
     post_blind: [:post_blind, :deal_hand],
     deal_hand: [:deal_hand, :action],
-    action: [:action, :showdown]
+    action: [:action, :showdown],
+    showdown: [:showdown, :create_hand]
   }
 
   STATES = TRANSITIONS.keys
@@ -30,7 +31,7 @@ class StateMachine
       transition_to(:create_hand)
     when /\ASeat (\d+)/
       transition_to(:create_player)
-    when /\ADealer : Set dealer\/Bring in spot/
+    when / : Set dealer\/Bring in spot/
       # no-op
     when /Ante\/Small Blind/, /Big blind\/Bring in/
       transition_to(:post_blind)
@@ -40,6 +41,12 @@ class StateMachine
       # no-op
     when / : Folds/
       transition_to(:action)
+    when /Does not show/, /Hand result/
+      transition_to(:showdown)
+    when /Table enter user/, /Seat sit down/
+      # no-op
+    when /\A\*\*\* SUMMARY/, /\ASeat\+\d/, /Board/, /Total Pot/, /\A\z/
+      # no-op
     else
       raise InvalidTransition, 'Line did not match a pattern'
     end
@@ -76,7 +83,7 @@ class StateMachine
     @current_hand.players << OpenStruct.new.tap do |player|
       @current_line.match(/\ASeat (\d+)/)
       player.name = "Seat #{$1}"
-      raw_player_position = @current_line.match(/: ([A-z ]+)/).captures.first
+      raw_player_position = @current_line.match(/: ([A-z +\d]+)/).captures.first
       player.position = cleanup_player_position(raw_player_position)
 
       if raw_player_position =~ /\[ME\]/
@@ -109,6 +116,12 @@ class StateMachine
         action.player = current_player
       end
     end
+  end
+
+  def changed_to_showdown
+    # TODO: Figure out what to store for showdowns
+    @current_hand.showdown_info ||= []
+    @current_hand.showdown_info << @current_line
   end
 
   # Utility Methods
