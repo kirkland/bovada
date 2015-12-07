@@ -34,9 +34,9 @@ class StateMachine
       transition_to(:create_hand)
     when /\ASeat (\d+)/
       transition_to(:create_player)
-    when / : Set dealer\/Bring in spot/
+    when /Set dealer\/Bring in spot/
       # no-op
-    when /Ante\/Small Blind/, /Big blind\/Bring in/, /Posts chip/
+    when /Ante\/Small Blind/, /Big blind\/Bring in/, /Posts chip/, /Posts dead chip/
       transition_to(:post_blind)
     when /Card dealt to a spot/
       transition_to(:deal_hand)
@@ -50,12 +50,13 @@ class StateMachine
       transition_to(:deal_turn)
     when /\A\*\*\* RIVER/
       transition_to(:deal_river)
-    when /Does not show/, /Hand result/, /Return uncalled portion/, /Showdown/, /Mucks/
+    when /Does not show/, /Hand result/, /Showdown/, /Mucks/
       transition_to(:showdown)
     when /Table enter user/, /Seat sit down/
       # no-op
     when /\A\*\*\* SUMMARY/, /\ASeat\+\d/, /Board/, /Total Pot/, /\A\z/, /Table deposit/,
-         /Seat stand/, /Table leave user/, /Seat sit out/, /Seat re-join/
+         /Seat stand/, /Table leave user/, /Seat sit out/, /Seat re-join/,
+         /Return uncalled portion/, /Sitout/
       # no-op
     else
       raise InvalidTransition, 'Line did not match a pattern'

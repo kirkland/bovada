@@ -262,7 +262,7 @@ Dealer : Hand result $1.83
 UTG : Hand result $1.84 
 UTG+3  [ME] : Table deposit $0.79 
 *** SUMMARY ***
-ToBovada Hand #3180965469 TBL#10244668 HOLDEM No Limit - 2015-11-27 05:24:32
+Bovada Hand #3180965469 TBL#10244668 HOLDEM No Limit - 2015-11-27 05:24:32
 Seat 1: UTG+1 ($2.55 in chips)
 Seat 2: UTG+2 ($4.88 in chips)
 Seat 3: UTG+3 ($1.18 in chips)

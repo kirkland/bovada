@@ -1034,7 +1034,9 @@ Dealer : Hand result $0.15
 *** SUMMARY ***
 Total Pot($0.15)
 Board [7s Qh 3d 5s ]
-Seat+1: Small Blind Folded on tBovada Hand #3180675487 TBL#10239001 HOLDEM No Limit - 2015-11-26 20:12:03
+Seat+1: Small Blind Folded on t
+
+Bovada Hand #3180675487 TBL#10239001 HOLDEM No Limit - 2015-11-26 20:12:03
 Seat 1: Small Blind ($3.19 in chips)
 Seat 2: Big Blind [ME] ($5 in chips)
 Seat 3: UTG ($3.23 in chips)

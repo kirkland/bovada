@@ -242,19 +242,7 @@ Seat+4: UTG [Mucked] [6s Kh]
 Seat+5: UTG+1 Folded before the FLOP
 
 
-Bovada Hand #3180972824 TBL#10242246 HOLDEM No Limit - 2015-11-27 05:57:23
-Seat 1: UTG+1 ($4.93 in chips)
-Seat 2: Dealer ($11.05 in chips)
-Seat 3: Small Blind [ME] ($5.98 in chips)
-Seat 4: Big Blind ($3.41 in chips)
-Seat 5: UTG ($6.78 in chips)
-Dealer : Set dealer/Bring in spot [2] 
-Small Blind  [ME] : Ante/Small Blind $0.02 
-Big Blind : Big blind/Bring in $0.05 
-*** HOLE CARDS ***
-UTG+1 : Card dealt to a spot [2h 7d] 
-Dealer : Card dealt to a spot [7s Kh] 
-Small Blind  [ME] : Card dealt to a spot Bovada Hand #3180971545 TBL#10242246 HOLDEM No Limit - 2015-11-27 05:50:57
+Bovada Hand #3180971545 TBL#10242246 HOLDEM No Limit - 2015-11-27 05:50:57
 Seat 1: Dealer ($5.04 in chips)
 Seat 2: Small Blind ($10.93 in chips)
 Seat 3: Big Blind [ME] ($5 in chips)
