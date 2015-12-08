@@ -1,0 +1,15 @@
+========== 2015-12-08 ==========
+
+What to do next?
+
+I could make a hand replayer:
+-- Layout players in a circle, roughly.
+-- Press some key to "step" to next action or board card(s).
+-- Maybe try layout out players not in a circle (in a line instead).
+
+I could calculate EV given knowledge of cards.
+-- Would need to figure out how to calculate odds.
+
+Let's make a replayer. What medium? curses? Native OSX? Web?
+
+This could be my EmberTime project!
