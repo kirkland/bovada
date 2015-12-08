@@ -186,7 +186,7 @@ class StateMachine
 
   def extract_amount
     if @current_line.count('$') > 1
-      if @current_line.match(/\$[0-9\.]+ to \$([0-9\.])+/)
+      if @current_line.match(/\$[0-9\.]+ to \$([0-9\.]+)/)
         raw_amount = $1
       else
         raise "Uh oh, I don't know which amount to extract from #{@current_line}"
