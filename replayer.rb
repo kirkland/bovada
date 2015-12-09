@@ -1,4 +1,6 @@
 require "curses"
+require 'ap'
+
 include Curses
 
 init_screen
@@ -21,11 +23,13 @@ cells = 3.times.collect do |row_index|
   end
 end
 
-puts cells.inspect
-exit
-
-player_positions = {
-  'Player 1' => [5, (cols / 2) - 8]
+player_cell_indexes = {
+  'Player 1' => [1, 0],
+  'Player 2' => [2, 0],
+  'Player 3' => [3, 1],
+  'Player 4' => [2, 2],
+  'Player 5' => [1, 2],
+  'Player 6' => [0, 1]
 }
 
 # Height, width, y, x
@@ -37,8 +41,11 @@ player_positions = {
 #win.getch
 #win.close
 
-player_positions.each do |name, player_position|
-  win = Window.new(5, 16, *player_position)
+player_cell_indexes.each do |name, player_position|
+  x_offset = cells[player_position[1]][player_position[0]][:x]
+  y_offset = cells[player_position[1]][player_position[0]][:y]
+
+  win = Window.new(cell_height, cell_width, y_offset, x_offset)
   win.box('|', '-')
   win.setpos(1, 4)
   win.addstr(name)
