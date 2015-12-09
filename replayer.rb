@@ -6,20 +6,17 @@ include Curses
 init_screen
 
 # The entire screen is filled up by cells. A cell is determined by:
-# x: Column offset from left.
 # y: Row offset from TOP.
+# x: Column offset from left.
 
 # All cells have the same height and width
 
-cell_width = cols / 4
 cell_height = lines / 3
+cell_width = cols / 4
 
-cells = 3.times.collect do |row_index|
-  4.times.collect do |column_index|
-    {
-      x: cell_width * column_index,
-      y: cell_height * row_index
-    }
+cells = 4.times.collect do |column_index|
+  3.times.collect do |row_index|
+    [cell_height * row_index, cell_width * column_index]
   end
 end
 
@@ -32,20 +29,10 @@ player_cell_indexes = {
   'Player 6' => [0, 1]
 }
 
-# Height, width, y, x
-#win = Window.new(5, 5, 0, 0)
-#win.box('|', '-')
-#win.setpos(1, 1)
-#win.addstr("hello")
-#win.refresh
-#win.getch
-#win.close
-
 player_cell_indexes.each do |name, player_position|
-  x_offset = cells[player_position[1]][player_position[0]][:x]
-  y_offset = cells[player_position[1]][player_position[0]][:y]
+  offsets = cells[player_position[0]][player_position[1]]
 
-  win = Window.new(cell_height, cell_width, y_offset, x_offset)
+  win = Window.new(cell_height, cell_width, *offsets)
   win.box('|', '-')
   win.setpos(1, 4)
   win.addstr(name)
@@ -53,6 +40,3 @@ player_cell_indexes.each do |name, player_position|
   win.getch
   win.close
 end
-
-# Man file says this is necessary, yet it doesn't exist here
-# endwin
