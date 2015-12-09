@@ -29,13 +29,18 @@ player_cell_indexes = {
   'Player 6' => [0, 1]
 }
 
+def add_name(name, win, cell_width)
+  center = cell_width / 2
+  win.setpos(1, center - name.length / 2)
+  win.addstr(name)
+end
+
 player_cell_indexes.each do |name, player_position|
   offsets = cells[player_position[0]][player_position[1]]
 
   win = Window.new(cell_height, cell_width, *offsets)
   win.box('|', '-')
-  win.setpos(1, 4)
-  win.addstr(name)
+  add_name(name, win, cell_width)
   win.refresh
   win.getch
   win.close
