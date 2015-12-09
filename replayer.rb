@@ -35,12 +35,23 @@ def add_name(name, win, cell_width)
   win.addstr(name)
 end
 
+def add_stack(amount, win, cell_width, cell_height)
+  cents = amount % 100
+  dollars = amount / 100
+  amount_string = "$#{dollars}.#{cents}"
+
+  center = cell_width / 2
+  win.setpos(3, center - amount_string.length / 2)
+  win.addstr(amount_string)
+end
+
 player_cell_indexes.each do |name, player_position|
   offsets = cells[player_position[0]][player_position[1]]
 
   win = Window.new(cell_height, cell_width, *offsets)
   win.box('|', '-')
   add_name(name, win, cell_width)
+  add_stack(rand(1000), win, cell_width, cell_height)
   win.refresh
   win.getch
   win.close
